@@ -1,0 +1,330 @@
+/* Reward Animation Component Styles */
+.reward-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reward-active {
+  opacity: 1;
+  transform: scale(1);
+  animation: reward-entrance 0.6s ease-out;
+}
+
+/* Overlay */
+.reward-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, 
+    rgba(0, 0, 0, 0.3) 0%, 
+    rgba(0, 0, 0, 0.1) 70%, 
+    transparent 100%);
+}
+
+/* Main Reward Display */
+.reward-main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 10;
+  animation: reward-bounce 0.8s ease-out;
+}.reward-icon {
+  font-size: 6rem;
+  margin-bottom: 16px;
+  animation: icon-spin 1s ease-out;
+  filter: drop-shadow(0 0 20px currentColor);
+}
+
+.reward-value {
+  font-size: 3rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 8px;
+  animation: value-pop 0.6s ease-out 0.2s both;
+}
+
+.reward-message {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  animation: message-slide 0.6s ease-out 0.4s both;
+}
+
+/* Particles */
+.particles-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform-origin: 50% 50%;
+  animation: particle-burst 1.2s ease-out var(--delay);
+}/* Shine Effect */
+.reward-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    transparent 70%);
+  border-radius: 50%;
+  animation: shine-rotate 2s linear infinite;
+}
+
+/* Fireworks */
+.fireworks-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.firework {
+  position: absolute;
+  animation: firework-explode 1.5s ease-out;
+}
+
+.firework-1 { top: 20%; left: 20%; animation-delay: 0.1s; }
+.firework-2 { top: 30%; right: 20%; animation-delay: 0.3s; }
+.firework-3 { top: 60%; left: 15%; animation-delay: 0.5s; }
+.firework-4 { top: 70%; right: 25%; animation-delay: 0.7s; }
+.firework-5 { top: 40%; left: 50%; animation-delay: 0.9s; }
+.firework-6 { top: 80%; right: 50%; animation-delay: 1.1s; }
+
+.firework-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #ffd700;
+  border-radius: 50%;
+  animation: spark-burst 1s ease-out;
+}
+
+.firework-spark:nth-child(1) { animation-delay: 0s; }
+.firework-spark:nth-child(2) { animation-delay: 0.1s; }
+.firework-spark:nth-child(3) { animation-delay: 0.2s; }
+.firework-spark:nth-child(4) { animation-delay: 0.3s; }
+.firework-spark:nth-child(5) { animation-delay: 0.4s; }
+.firework-spark:nth-child(6) { animation-delay: 0.5s; }
+.firework-spark:nth-child(7) { animation-delay: 0.6s; }
+.firework-spark:nth-child(8) { animation-delay: 0.7s; }/* Animations */
+@keyframes reward-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes reward-bounce {
+  0% {
+    transform: translateY(-100px) scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(10px) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-5px) scale(0.95);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes icon-spin {
+  0% {
+    transform: rotate(-360deg) scale(0.5);
+    filter: brightness(0.5);
+  }
+  50% {
+    transform: rotate(-180deg) scale(1.2);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes value-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes message-slide {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes particle-burst {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(100px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes shine-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes firework-explode {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes spark-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x, 50px), var(--y, 50px)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Reward Type Variations */
+.reward-levelUp .reward-main {
+  animation: level-up-celebration 1.5s ease-out;
+}
+
+.reward-achievement .reward-icon {
+  animation: achievement-glow 2s ease-out;
+}
+
+.reward-streak .reward-icon {
+  animation: streak-fire 1s ease-out infinite alternate;
+}
+
+@keyframes level-up-celebration {
+  0%, 20%, 40%, 60%, 80% {
+    transform: translateY(-10px) scale(1.1);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes achievement-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 30px currentColor) brightness(1.3);
+  }
+}
+
+@keyframes streak-fire {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  100% {
+    filter: hue-rotate(30deg) brightness(1.2);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reward-icon {
+    font-size: 4rem;
+  }
+  
+  .reward-value {
+    font-size: 2rem;
+  }
+  
+  .reward-message {
+    font-size: 1.2rem;
+    padding: 6px 12px;
+  }
+  
+  .particles-container {
+    width: 150px;
+    height: 150px;
+  }
+}

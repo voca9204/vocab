@@ -1,0 +1,276 @@
+/* Level Indicator Component Styles */
+.level-indicator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border: 2px solid #e9ecef;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Variants */
+.level-default {
+  flex-direction: row;
+}
+
+.level-compact {
+  padding: 12px;
+  gap: 12px;
+}
+
+.level-compact .xp-info {
+  display: none;
+}
+
+.level-minimal {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 8px;
+}
+
+/* Sizes */
+.level-small {
+  font-size: 0.85rem;
+  padding: 12px;
+  gap: 12px;
+}
+
+.level-medium {
+  font-size: 1rem;
+}
+
+.level-large {
+  font-size: 1.1rem;
+  padding: 20px;
+  gap: 20px;
+}/* Level Badge */
+.level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.level-number {
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.level-title {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+/* Progress Section */
+.level-progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(145deg, #f1f3f4, #e8eaed);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}.progress-bar {
+  height: 100%;
+  border-radius: 6px;
+  position: relative;
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, currentColor, currentColor);
+  overflow: hidden;
+}
+
+.progress-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent);
+  animation: progress-glow 2s infinite;
+}
+
+/* Progress Labels */
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.current-xp {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.next-level-xp {
+  color: #6c757d;
+}
+
+/* XP Info */
+.xp-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xp-remaining {
+  font-size: 0.9em;
+  color: #495057;
+  font-weight: 500;
+}
+
+.xp-percentage {
+  font-size: 0.8em;
+  color: #6c757d;
+  font-weight: 600;
+}/* Animations */
+.level-animated {
+  animation: level-pulse 3s infinite ease-in-out;
+}
+
+.level-animated .level-badge {
+  animation: badge-glow 2s infinite ease-in-out;
+}
+
+@keyframes level-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  50% { 
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@keyframes badge-glow {
+  0%, 100% { 
+    filter: brightness(1);
+  }
+  50% { 
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes progress-glow {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Size Adjustments */
+.level-small .level-badge {
+  min-width: 60px;
+  height: 60px;
+}
+
+.level-small .level-number {
+  font-size: 1.4em;
+}
+
+.level-small .level-title {
+  font-size: 0.6em;
+}
+
+.level-small .progress-track {
+  height: 8px;
+}
+
+.level-large .level-badge {
+  min-width: 100px;
+  height: 100px;
+}
+
+.level-large .level-number {
+  font-size: 2.2em;
+}
+
+.level-large .level-title {
+  font-size: 0.8em;
+}
+
+.level-large .progress-track {
+  height: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .level-indicator {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .level-badge {
+    min-width: 70px;
+    height: 70px;
+  }
+  
+  .level-number {
+    font-size: 1.6em;
+  }
+  
+  .xp-info {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .level-indicator {
+    background: linear-gradient(145deg, #2c3e50, #34495e);
+    border-color: #495057;
+  }
+  
+  .progress-track {
+    background: linear-gradient(145deg, #495057, #343a40);
+  }
+  
+  .progress-labels,
+  .xp-remaining,
+  .xp-percentage {
+    color: #adb5bd;
+  }
+  
+  .current-xp {
+    color: #28a745;
+  }
+}

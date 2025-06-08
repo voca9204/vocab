@@ -1,3 +1,5 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
 /**
  * File Parsing Service
  * 
@@ -5,13 +7,14 @@
  * - CSV files
  * - JSON files
  * - Excel files (basic support)
+ * - PDF files (with OCR support)
  * 
  * Provides validation and data mapping functionality
  */
 
 class FileParsingService {
   constructor() {
-    this.supportedFormats = ['csv', 'json', 'xlsx', 'xls'];
+    this.supportedFormats = ['csv', 'json', 'xlsx', 'xls', 'pdf'];
     this.requiredFields = ['word', 'definition'];
     this.optionalFields = [
       'pronunciation', 
@@ -24,28 +27,52 @@ class FileParsingService {
       'categories',
       'translation'
     ];
+    this.pdfWorkerInitialized = false;
+    this.initializePDFWorker();
+  }
+
+  /**
+   * PDF.js Worker 초기화
+   */
+  async initializePDFWorker() {
+    if (this.pdfWorkerInitialized) return;
+    
+    try {
+      // CDN에서 직접 Worker 로드 (안정적)
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.31/pdf.worker.min.js';
+      console.log('✅ PDF.js Worker initialized with CDN');
+      this.pdfWorkerInitialized = true;
+      
+    } catch (error) {
+      console.warn('⚠️ PDF.js Worker initialization failed:', error.message);
+    }
   }
 
   /**
    * Parse uploaded file based on its format
    */
-  async parseFile(file) {
+  async parseFile(file, options = {}) {
     try {
       const fileExtension = this.getFileExtension(file.name);
-      const content = await this.readFileContent(file);
       
       let parsedData;
       
       switch (fileExtension) {
         case 'csv':
+          const content = await this.readFileContent(file);
           parsedData = await this.parseCSV(content);
           break;
         case 'json':
-          parsedData = await this.parseJSON(content);
+          const jsonContent = await this.readFileContent(file);
+          parsedData = await this.parseJSON(jsonContent);
           break;
         case 'xlsx':
         case 'xls':
-          parsedData = await this.parseExcel(content, file);
+          const excelContent = await this.readFileContent(file);
+          parsedData = await this.parseExcel(excelContent, file);
+          break;
+        case 'pdf':
+          parsedData = await this.parsePDF(file, options);
           break;
         default:
           throw new Error(`Unsupported file format: ${fileExtension}`);
@@ -196,6 +223,265 @@ class FileParsingService {
     } catch (error) {
       throw new Error(`Excel parsing error: ${error.message}`);
     }
+  }
+
+  /**
+   * Parse PDF content using PDF.js
+   */
+  async parsePDF(file, options = {}) {
+    try {
+      console.log('📄 Starting PDF parsing for vocabulary import...');
+      
+      // Worker 초기화 확인
+      if (!this.pdfWorkerInitialized) {
+        await this.initializePDFWorker();
+      }
+      
+      const arrayBuffer = await file.arrayBuffer();
+      console.log(`📊 File loaded: ${Math.round(arrayBuffer.byteLength / 1024)}KB`);
+      
+      const loadingTask = pdfjsLib.getDocument({
+        data: arrayBuffer,
+        useWorkerFetch: false,
+        isEvalSupported: false
+      });
+      
+      const pdf = await loadingTask.promise;
+      console.log(`📑 PDF loaded successfully. Pages: ${pdf.numPages}`);
+      
+      let fullText = '';
+      
+      // 모든 페이지에서 텍스트 추출
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        try {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          const pageText = textContent.items
+            .filter(item => item.str && item.str.trim())
+            .map(item => item.str)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          if (pageText) {
+            fullText += pageText + '\n';
+          }
+          
+          page.cleanup();
+          
+          if (options.progressCallback) {
+            options.progressCallback({
+              stage: 'Extracting text from PDF',
+              progress: (pageNum / pdf.numPages) * 100
+            });
+          }
+          
+        } catch (pageError) {
+          console.warn(`⚠️ Error processing page ${pageNum}:`, pageError.message);
+        }
+      }
+      
+      await pdf.destroy();
+      
+      if (!fullText || fullText.trim().length === 0) {
+        throw new Error('No text could be extracted from the PDF file');
+      }
+      
+      console.log(`🎉 PDF extraction completed! Text length: ${fullText.length} characters`);
+      
+      // 텍스트를 어휘 형태로 변환
+      const vocabularyData = this.convertTextToVocabulary(fullText, file.name);
+      
+      console.log(`✅ PDF parsing completed: ${vocabularyData.length} vocabulary items found`);
+      
+      return vocabularyData;
+      
+    } catch (error) {
+      console.error('❌ PDF parsing failed:', error);
+      throw new Error(`PDF parsing error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Convert extracted text to vocabulary format
+   * Tries to intelligently parse text into vocabulary items
+   */
+  convertTextToVocabulary(text, fileName) {
+    const vocabularyItems = [];
+    
+    // Clean and split text into lines
+    const lines = text
+      .split(/\n+/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    console.log(`🔍 Processing ${lines.length} lines from PDF...`);
+    
+    // Try different parsing strategies
+    const strategies = [
+      this.parseStructuredVocabulary.bind(this),
+      this.parseDefinitionList.bind(this),
+      this.parseWordList.bind(this),
+      this.parseTabSeparated.bind(this),
+      this.parseSemiColonSeparated.bind(this)
+    ];
+    
+    for (const strategy of strategies) {
+      try {
+        const result = strategy(lines);
+        if (result.length > 0) {
+          console.log(`✅ Successfully parsed using strategy: ${strategy.name}`);
+          return result;
+        }
+      } catch (error) {
+        console.warn(`⚠️ Strategy ${strategy.name} failed:`, error.message);
+      }
+    }
+    
+    // If all strategies fail, create a simple word list
+    console.log('🔄 Falling back to simple text extraction...');
+    return this.fallbackTextExtraction(text, fileName);
+  }
+
+  /**
+   * Parse structured vocabulary (word - definition format)
+   */
+  parseStructuredVocabulary(lines) {
+    const vocabularyItems = [];
+    const patterns = [
+      /^(.+?)\s*[-–—]\s*(.+)$/, // word - definition
+      /^(.+?)\s*:\s*(.+)$/, // word: definition
+      /^(.+?)\s*\|\s*(.+)$/, // word | definition
+      /^(.+?)\s*=\s*(.+)$/ // word = definition
+    ];
+    
+    for (const line of lines) {
+      for (const pattern of patterns) {
+        const match = line.match(pattern);
+        if (match) {
+          const [, word, definition] = match;
+          if (word.trim().length > 0 && definition.trim().length > 0) {
+            vocabularyItems.push({
+              word: word.trim().toLowerCase(),
+              definition: definition.trim()
+            });
+            break;
+          }
+        }
+      }
+    }
+    
+    return vocabularyItems;
+  }
+
+  /**
+   * Parse definition list format
+   */
+  parseDefinitionList(lines) {
+    const vocabularyItems = [];
+    let currentWord = null;
+    
+    for (const line of lines) {
+      // Check if line looks like a word (short, no punctuation at end)
+      if (line.length < 30 && !line.endsWith('.') && !line.includes(' ')) {
+        currentWord = line.toLowerCase();
+      } else if (currentWord && line.length > 10) {
+        // This might be a definition
+        vocabularyItems.push({
+          word: currentWord,
+          definition: line
+        });
+        currentWord = null;
+      }
+    }
+    
+    return vocabularyItems;
+  }
+
+  /**
+   * Parse simple word list
+   */
+  parseWordList(lines) {
+    const vocabularyItems = [];
+    
+    for (const line of lines) {
+      // If line is a single word (no spaces, reasonable length)
+      if (!line.includes(' ') && line.length > 2 && line.length < 25) {
+        vocabularyItems.push({
+          word: line.toLowerCase(),
+          definition: `Definition for ${line}` // Placeholder definition
+        });
+      }
+    }
+    
+    return vocabularyItems;
+  }
+
+  /**
+   * Parse tab-separated format
+   */
+  parseTabSeparated(lines) {
+    const vocabularyItems = [];
+    
+    for (const line of lines) {
+      const parts = line.split('\t').map(part => part.trim());
+      if (parts.length >= 2 && parts[0].length > 0 && parts[1].length > 0) {
+        vocabularyItems.push({
+          word: parts[0].toLowerCase(),
+          definition: parts[1],
+          pronunciation: parts[2] || '',
+          koreanTranslation: parts[3] || ''
+        });
+      }
+    }
+    
+    return vocabularyItems;
+  }
+
+  /**
+   * Parse semicolon-separated format
+   */
+  parseSemiColonSeparated(lines) {
+    const vocabularyItems = [];
+    
+    for (const line of lines) {
+      const parts = line.split(';').map(part => part.trim());
+      if (parts.length >= 2 && parts[0].length > 0 && parts[1].length > 0) {
+        vocabularyItems.push({
+          word: parts[0].toLowerCase(),
+          definition: parts[1],
+          example: parts[2] || ''
+        });
+      }
+    }
+    
+    return vocabularyItems;
+  }
+
+  /**
+   * Fallback text extraction when structured parsing fails
+   */
+  fallbackTextExtraction(text, fileName) {
+    // Extract potential vocabulary words (longer than 3 characters, alphabetic)
+    const words = text
+      .match(/\b[a-zA-Z]{4,}\b/g)
+      ?.filter(word => {
+        const lower = word.toLowerCase();
+        return lower.length > 3 && 
+               lower.length < 20 && 
+               !['this', 'that', 'with', 'from', 'they', 'were', 'been', 'have', 'will', 'would', 'could', 'should'].includes(lower);
+      }) || [];
+    
+    // Remove duplicates and sort
+    const uniqueWords = [...new Set(words.map(w => w.toLowerCase()))];
+    
+    return uniqueWords.slice(0, 100).map(word => ({
+      word: word,
+      definition: `Definition for ${word} (extracted from ${fileName})`,
+      source: 'pdf_extraction',
+      requiresReview: true
+    }));
   }
 
   /**

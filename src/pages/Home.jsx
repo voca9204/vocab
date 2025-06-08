@@ -6,6 +6,11 @@ import FormDemo from '../components/FormDemo';
 import Modal from '../components/Modal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ProgressBar from '../components/ProgressBar';
+import AchievementBadge from '../components/AchievementBadge';
+import PointsDisplay from '../components/PointsDisplay';
+import Leaderboard from '../components/Leaderboard';
+import LevelIndicator from '../components/LevelIndicator';
+import RewardAnimation from '../components/RewardAnimation';
 import { useAppState, useAppDispatch, actions } from '../contexts/AppContext';
 import vocabularyAPI from '../services/vocabularyAPI';
 import './Home.css';
@@ -14,6 +19,9 @@ const Home = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentWordData, setCurrentWordData] = useState(null);
+  const [showReward, setShowReward] = useState(false);
+  const [rewardType, setRewardType] = useState('points');
+  const [rewardValue, setRewardValue] = useState(0);
   const appState = useAppState();
   const dispatch = useAppDispatch();
 
@@ -220,6 +228,141 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Gamification Demo Section */}
+      <div className="demo-section gamification-demo">
+        <h2 className="section-title">🎮 Gamification Features</h2>
+        
+        {/* Achievement Badges */}
+        <div className="demo-subsection">
+          <h3>🏆 Achievement Badges</h3>
+          <div className="badges-grid">
+            <AchievementBadge
+              title="First Steps"
+              description="Complete your first vocabulary quiz"
+              icon="🎯"
+              earned={true}
+              rarity="common"
+              animated={true}
+            />
+            <AchievementBadge
+              title="Word Master"
+              description="Learn 100 vocabulary words"
+              icon="📚"
+              earned={false}
+              rarity="rare"
+              progress={75}
+              maxProgress={100}
+              showProgress={true}
+            />
+            <AchievementBadge
+              title="Streak Legend"
+              description="Maintain a 30-day learning streak"
+              icon="🔥"
+              earned={true}
+              rarity="epic"
+              size="large"
+            />
+            <AchievementBadge
+              title="Grammar Guru"
+              description="Perfect score on advanced grammar test"
+              icon="⭐"
+              earned={false}
+              rarity="legendary"
+              progress={5}
+              maxProgress={10}
+              showProgress={true}
+            />
+          </div>
+        </div>
+
+        {/* Points & Level Display */}
+        <div className="demo-subsection">
+          <h3>💯 Points & Level System</h3>
+          <div className="points-level-container">
+            <PointsDisplay
+              currentPoints={2450}
+              totalPoints={12890}
+              level={8}
+              nextLevelPoints={2800}
+              animated={true}
+              variant="detailed"
+            />
+            <LevelIndicator
+              currentLevel={8}
+              currentXP={2450}
+              nextLevelXP={2800}
+              animated={true}
+              size="large"
+            />
+          </div>
+        </div>
+
+        {/* Leaderboard */}
+        <div className="demo-subsection">
+          <h3>🏅 Leaderboard</h3>
+          <Leaderboard
+            users={[
+              { id: 1, name: "Sarah Chen", points: 15420, level: 12, avatar: null, title: "Vocabulary Master" },
+              { id: 2, name: "Alex Johnson", points: 12890, level: 10, avatar: null, title: "Grammar Expert" },
+              { id: 3, name: "You", points: 8650, level: 8, avatar: null, title: "Rising Star" },
+              { id: 4, name: "Maria Garcia", points: 7200, level: 7, avatar: null, title: "Word Explorer" },
+              { id: 5, name: "David Kim", points: 6800, level: 6, avatar: null, title: "Language Learner" },
+              { id: 6, name: "Emma Wilson", points: 5900, level: 6, avatar: null, title: "Dedicated Student" }
+            ]}
+            currentUserId={3}
+            maxEntries={6}
+            variant="detailed"
+          />
+        </div>
+
+        {/* Reward Animation Demo */}
+        <div className="demo-subsection">
+          <h3>✨ Reward Animations</h3>
+          <div className="reward-demo-buttons">
+            <Button 
+              variant="success" 
+              onClick={() => {
+                setRewardType('points');
+                setRewardValue(50);
+                setShowReward(true);
+              }}
+            >
+              +50 Points
+            </Button>
+            <Button 
+              variant="info" 
+              onClick={() => {
+                setRewardType('badge');
+                setRewardValue(0);
+                setShowReward(true);
+              }}
+            >
+              New Badge
+            </Button>
+            <Button 
+              variant="warning" 
+              onClick={() => {
+                setRewardType('levelUp');
+                setRewardValue(9);
+                setShowReward(true);
+              }}
+            >
+              Level Up!
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={() => {
+                setRewardType('streak');
+                setRewardValue(7);
+                setShowReward(true);
+              }}
+            >
+              Streak Bonus
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Modal Demo */}
       <Modal
         isOpen={showModal}
@@ -255,6 +398,20 @@ const Home = () => {
           fullScreen={true}
         />
       )}
+
+      {/* Reward Animation */}
+      <RewardAnimation
+        isVisible={showReward}
+        type={rewardType}
+        value={rewardValue}
+        message={
+          rewardType === 'levelUp' ? `Level ${rewardValue} Reached!` :
+          rewardType === 'badge' ? 'New Achievement Unlocked!' :
+          rewardType === 'streak' ? `${rewardValue} Day Streak!` :
+          'Great Job!'
+        }
+        onComplete={() => setShowReward(false)}
+      />
     </div>
   );
 };

@@ -8,16 +8,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+      },
       manifest: {
         name: 'Vocabulary Learning App',
         short_name: 'Vocabulary',
-        description: 'SAT vocabulary learning application with offline support',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        scope: '/',
-        start_url: '/',
+        description: 'SAT Vocabulary Learning Progressive Web App',
+        theme_color: '#4f46e5',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -28,61 +26,19 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\./i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
           }
         ]
       }
     })
   ],
   server: {
-    port: 3000,
-    host: true,
-    open: false
+    port: process.env.PORT || 3000,
+    host: true
   },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'pdf-worker': ['pdfjs-dist']
-        }
-      }
-    }
-  },
-  preview: {
-    port: 3000
+  optimizeDeps: {
+    include: ['pdfjs-dist']
   },
   worker: {
     format: 'es'
-  },
-  optimizeDeps: {
-    include: ['pdfjs-dist'],
-    exclude: ['pdfjs-dist/build/pdf.worker.min.js']
-  },
-  assetsInclude: ['**/*.worker.js']
+  }
 })

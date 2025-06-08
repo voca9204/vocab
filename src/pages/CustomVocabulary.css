@@ -543,3 +543,84 @@ section {
     width: 100%;
   }
 }
+
+/* PDF 안내 메시지 스타일 개선 */
+.pdf-tips {
+  background: linear-gradient(135deg, #fff3cd, #fef3c7);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.pdf-tips strong {
+  color: #d97706;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pdf-tips ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.pdf-tips li {
+  margin-bottom: 4px;
+  color: #92400e;
+}
+
+.recommended-formats {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommended-formats strong {
+  color: #16a34a;
+  margin: 0;
+}
+
+.recommended-formats span {
+  color: #15803d;
+  font-weight: 500;
+}
+
+/* 에러 메시지 스타일 개선 */
+.upload-errors {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.upload-errors h4 {
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.upload-errors .error-item {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+.upload-errors .error-item strong {
+  color: #991b1b;
+}
+
+.upload-errors .error-item pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 8px 0 0 0;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
