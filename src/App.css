@@ -1,0 +1,68 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  background: #f8f9fa;
+}
+
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Page styles */
+.dashboard-page,
+.quiz-page,
+.profile-page,
+.about-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-content {
+  margin-top: 2rem;
+}
+
+.about-content ul {
+  list-style: none;
+  padding: 0;
+}
+
+.about-content li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.about-content li:before {
+  content: "✓ ";
+  color: #007bff;
+  font-weight: bold;
+}
