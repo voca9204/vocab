@@ -563,6 +563,57 @@ class CustomVocabularyAPI {
   }
 
   /**
+   * Get collection preview data for database selector
+   */
+  async getCollectionPreview(collectionId, userId) {
+    try {
+      const collection = await this.getCollection(collectionId, userId);
+      
+      // Get a few sample vocabularies
+      const sampleQuery = query(
+        collection(this.db, 'custom_vocabularies'),
+        where('collectionId', '==', collectionId),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(6)
+      );
+      
+      const sampleSnapshot = await getDocs(sampleQuery);
+      const sampleWords = sampleSnapshot.docs.map(doc => doc.data().word);
+
+      // Get categories from all vocabularies
+      const vocabQuery = query(
+        collection(this.db, 'custom_vocabularies'),
+        where('collectionId', '==', collectionId),
+        where('userId', '==', userId)
+      );
+      
+      const vocabSnapshot = await getDocs(vocabQuery);
+      const categoriesSet = new Set();
+      
+      vocabSnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.categories) {
+          data.categories.forEach(cat => categoriesSet.add(cat));
+        }
+      });
+
+      return {
+        wordCount: collection.wordCount || 0,
+        studiedCount: collection.studiedCount || 0,
+        masteredCount: collection.masteredCount || 0,
+        categories: Array.from(categoriesSet).slice(0, 5), // Show up to 5 categories
+        sampleWords: sampleWords.slice(0, 4), // Show 4 sample words
+        lastModified: collection.updatedAt?.toDate() || collection.createdAt?.toDate(),
+        difficulty: collection.difficulty || 'Mixed'
+      };
+    } catch (error) {
+      console.error('Error getting collection preview:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get collection statistics
    */
   async getCollectionStatistics(collectionId, userId) {

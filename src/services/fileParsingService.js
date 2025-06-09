@@ -1,5 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist';
-
 /**
  * File Parsing Service
  * 
@@ -7,14 +5,13 @@ import * as pdfjsLib from 'pdfjs-dist';
  * - CSV files
  * - JSON files
  * - Excel files (basic support)
- * - PDF files (with OCR support)
  * 
  * Provides validation and data mapping functionality
  */
 
 class FileParsingService {
   constructor() {
-    this.supportedFormats = ['csv', 'json', 'xlsx', 'xls', 'pdf'];
+    this.supportedFormats = ['csv', 'json', 'xlsx', 'xls'];
     this.requiredFields = ['word', 'definition'];
     this.optionalFields = [
       'pronunciation', 
@@ -27,25 +24,6 @@ class FileParsingService {
       'categories',
       'translation'
     ];
-    this.pdfWorkerInitialized = false;
-    this.initializePDFWorker();
-  }
-
-  /**
-   * PDF.js Worker 초기화
-   */
-  async initializePDFWorker() {
-    if (this.pdfWorkerInitialized) return;
-    
-    try {
-      // CDN에서 직접 Worker 로드 (안정적)
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.3.31/pdf.worker.min.js';
-      console.log('✅ PDF.js Worker initialized with CDN');
-      this.pdfWorkerInitialized = true;
-      
-    } catch (error) {
-      console.warn('⚠️ PDF.js Worker initialization failed:', error.message);
-    }
   }
 
   /**
@@ -70,9 +48,6 @@ class FileParsingService {
         case 'xls':
           const excelContent = await this.readFileContent(file);
           parsedData = await this.parseExcel(excelContent, file);
-          break;
-        case 'pdf':
-          parsedData = await this.parsePDF(file, options);
           break;
         default:
           throw new Error(`Unsupported file format: ${fileExtension}`);

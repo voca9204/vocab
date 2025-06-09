@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../contexts/AppContext';
 import customVocabularyAPI from '../services/customVocabularyAPI';
 import VocabularyItemEditor from '../components/VocabularyItemEditor';
+import OpenAISettings from '../components/OpenAISettings';
+import DatabaseSelector from '../components/DatabaseSelector';
 import { 
   Database, 
   Search, 
@@ -61,6 +63,18 @@ const VocabularyManagement = () => {
   const [showEditor, setShowEditor] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isEditorLoading, setIsEditorLoading] = useState(false);
+  
+  // OpenAI Settings state
+  const [showOpenAISettings, setShowOpenAISettings] = useState(false);
+  
+  // Database Selection state
+  const [showDatabaseSelector, setShowDatabaseSelector] = useState(false);
+  const [currentDatabase, setCurrentDatabase] = useState({
+    id: 'system',
+    type: 'system',
+    name: 'System SAT Vocabulary',
+    description: 'Official SAT vocabulary database with 3000+ words'
+  });
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -347,6 +361,38 @@ const VocabularyManagement = () => {
     }
   };
 
+  // Handle database change
+  const handleDatabaseChange = async (database) => {
+    try {
+      setCurrentDatabase(database);
+      
+      if (database.type === 'system') {
+        // Switch to system vocabulary
+        setView('collections');
+        setSelectedCollection(null);
+        setVocabularyItems([]);
+        
+        // Note: You might want to implement system vocabulary integration here
+        console.log('Switched to system vocabulary database');
+        
+      } else {
+        // Switch to custom collection
+        setView('collections');
+        setSelectedCollection(null);
+        setVocabularyItems([]);
+        
+        // Reload collections (they might be filtered by database)
+        await loadCollections();
+        
+        console.log(`Switched to custom database: ${database.name}`);
+      }
+      
+    } catch (err) {
+      console.error('Error switching database:', err);
+      setError('Failed to switch database. Please try again.');
+    }
+  };
+
   // Format date for display
   const formatDate = (timestamp) => {
     if (!timestamp) return 'Unknown';
@@ -364,10 +410,32 @@ const VocabularyManagement = () => {
     <div className="collections-view">
       <div className="collections-header">
         <div className="header-content">
-          <h2>My Vocabulary Collections</h2>
+          <div className="header-top">
+            <h2>My Vocabulary Collections</h2>
+            <div className="current-database">
+              <span className="database-label">Current Database:</span>
+              <button 
+                className="database-selector-btn"
+                onClick={() => setShowDatabaseSelector(true)}
+                title="Switch vocabulary database"
+              >
+                <Database size={16} />
+                {currentDatabase.name}
+                <Settings size={14} />
+              </button>
+            </div>
+          </div>
           <p>Manage your custom vocabulary collections and study materials</p>
         </div>
         <div className="header-actions">
+          <button 
+            className="btn btn-outline"
+            onClick={() => setShowOpenAISettings(true)}
+            title="OpenAI Settings for AI example generation"
+          >
+            <Settings size={16} />
+            AI Settings
+          </button>
           <button 
             className="btn btn-primary"
             onClick={() => navigate('/custom-vocabulary')}
@@ -722,6 +790,25 @@ const VocabularyManagement = () => {
           onSave={handleSaveItem}
           onDelete={handleDeleteFromEditor}
           isLoading={isEditorLoading}
+        />
+      )}
+
+      {/* Database Selector Modal */}
+      {showDatabaseSelector && (
+        <DatabaseSelector
+          isOpen={showDatabaseSelector}
+          currentDatabase={currentDatabase}
+          onDatabaseChange={handleDatabaseChange}
+          onClose={() => setShowDatabaseSelector(false)}
+          userId={user?.uid}
+        />
+      )}
+
+      {/* OpenAI Settings Modal */}
+      {showOpenAISettings && (
+        <OpenAISettings
+          isOpen={showOpenAISettings}
+          onClose={() => setShowOpenAISettings(false)}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { X, Save, Trash2, Plus } from 'lucide-react';
+import { X, Save, Trash2, Plus, Sparkles, RefreshCw } from 'lucide-react';
+import openaiService from '../services/openaiService';
 import './VocabularyItemEditor.css';
 
 /**
@@ -32,6 +33,7 @@ const VocabularyItemEditor = ({
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingExamples, setIsGeneratingExamples] = useState(false);
 
   // Initialize form data when item changes
   useEffect(() => {
@@ -107,6 +109,66 @@ const VocabularyItemEditor = ({
   const handleCategoriesChange = (value) => {
     const categories = value.split(',').map(cat => cat.trim()).filter(cat => cat);
     handleInputChange('categories', categories);
+  };
+
+  // Generate AI examples
+  const generateAIExamples = async (regenerate = false) => {
+    if (!formData.word.trim()) {
+      setErrors(prev => ({ ...prev, aiGeneration: 'Please enter a word first' }));
+      return;
+    }
+
+    if (!formData.definitions[0]?.definition?.trim()) {
+      setErrors(prev => ({ ...prev, aiGeneration: 'Please add at least one definition first' }));
+      return;
+    }
+
+    setIsGeneratingExamples(true);
+    setErrors(prev => ({ ...prev, aiGeneration: null }));
+
+    try {
+      const options = {
+        difficulty: formData.difficulty,
+        context: 'academic',
+        language: 'english'
+      };
+
+      const result = regenerate 
+        ? await openaiService.regenerateExampleSentences(
+            formData.word, 
+            formData.definitions[0].definition, 
+            options
+          )
+        : await openaiService.generateExampleSentences(
+            formData.word, 
+            formData.definitions[0].definition, 
+            options
+          );
+
+      if (result.examples && result.examples.length > 0) {
+        // Replace existing examples with AI-generated ones
+        const newExamples = result.examples.map(example => ({ example }));
+        setFormData(prev => ({ ...prev, examples: newExamples }));
+        
+        // Show success message based on source
+        const sourceMessage = result.source === 'cache' ? ' (from cache)' : 
+                             result.source === 'fallback' ? ' (fallback examples)' : '';
+        console.log(`Generated ${result.examples.length} examples${sourceMessage}`);
+      } else {
+        setErrors(prev => ({ 
+          ...prev, 
+          aiGeneration: 'Failed to generate examples. Please try again or add examples manually.' 
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating AI examples:', error);
+      setErrors(prev => ({ 
+        ...prev, 
+        aiGeneration: `Failed to generate examples: ${error.message}` 
+      }));
+    } finally {
+      setIsGeneratingExamples(false);
+    }
   };
 
   // Validate form
@@ -310,7 +372,36 @@ const VocabularyItemEditor = ({
 
           {/* Examples */}
           <div className="form-group">
-            <label>Examples</label>
+            <div className="form-label-with-actions">
+              <label>Examples</label>
+              <div className="ai-actions">
+                <button
+                  type="button"
+                  className="btn btn-ai"
+                  onClick={() => generateAIExamples(false)}
+                  disabled={isSubmitting || isGeneratingExamples}
+                  title="Generate examples using AI"
+                >
+                  <Sparkles size={14} />
+                  {isGeneratingExamples ? 'Generating...' : 'AI Generate'}
+                </button>
+                {formData.examples.some(ex => ex.example?.trim()) && (
+                  <button
+                    type="button"
+                    className="btn btn-ai btn-outline"
+                    onClick={() => generateAIExamples(true)}
+                    disabled={isSubmitting || isGeneratingExamples}
+                    title="Regenerate examples using AI"
+                  >
+                    <RefreshCw size={14} />
+                    Regenerate
+                  </button>
+                )}
+              </div>
+            </div>
+            {errors.aiGeneration && (
+              <div className="ai-error-message">{errors.aiGeneration}</div>
+            )}
             {formData.examples.map((ex, index) => (
               <div key={index} className="array-item">
                 <input
